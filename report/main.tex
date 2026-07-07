@@ -1,0 +1,179 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+
+\title{Stock Market Volatility Analysis}
+\author{Nevena Ciganovic}
+\date{November 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Abstract}
+This report aims to identify the factors affecting the stock market’s implied volatility. It utilizes four regression models and numerous statistical machine learning concepts to predict the future trends of the VIX index (Volatility Index), which can be helpful when making investment decisions and can reveal a lot of pertinent information for investors. The focus will be on evaluating each model's predictive performance through metric comparisons. We will then conduct an analysis of the forces driving the volatility during different time segments within the stock market using Elastic Net regression. Our goal is to identify what regression model is best suited for the given data set and to discern the contributing forces and external factors affecting the stock market's implied volatility.
+
+\section{Introduction}
+The stock market is a place where buyers and sellers exchange shares of publicly owned corporations. Although stock exchanges originally occurred in-person, advancements in technology have allowed for most stock exchanges today to occur through online platforms. The stock market holds great importance and plays a critical role in the economy by supporting the economic growth of different companies.\\
+
+As a result, it is important to analyze current trends in the stock market and predict future VIX (volatility index) trends for a variety of reasons. It helps investors make well-informed decisions about when to buy or sell stocks, which can help them identify risky and prosperous situations and develop new strategies accordingly. Analyzing VIX patterns can also help economists determine how the economy will react based on external factors, such as inflation, political events, or global events. These actions are thus crucial for risk management and financial planning.\\
+
+\newpage
+This report uses a data set from that contains monthly VIX values as the response variable and 45 different monthly EMV trackers as the predictor variables from January 1990 to December 2022. The data will be used to develop a regression model in order to analyze trends in the equity market, specifically the forces driving the market’s implied volatility. Furthermore, we will use our model to predict future values of VIX, which will give us insightful information on the stock market.\\
+
+In Phase 1, we will use four different regression models: Ordinary Least Squares (OLS) Regression, Least Absolute Shrinkage and Selection Operator (LASSO) Regression, Ridge Regression, and Elastic Net Regression to analyze the trends in the stock market over the last 32 years and predict future trends. We will also thoroughly compare the performance of each model and discuss the benefits and drawback pertaining to each model. The main question of interest for this phase is:
+\begin{enumerate}
+    \item Can we provide a coherent picture of mechanisms underlying the sudden volatility changes in stock markets in the past 32 years?
+    \item Is it even possible to forecast the stock market fear index? What are the reasons in favour of and against such possibility. 
+    \item Are the past data available to you sufficient for constructing a predictive model to forecast the direction of the stock market movements in the future?
+\end{enumerate}
+
+In Phase 2, we will use Elastic Net Regression to analyze the stock market trends once again; however, we will now focus on six different segments of time. Some questions of interest for this phase are: 
+\begin{enumerate}
+    \item Can we characterize the nature of the most dominant forces responsible for driving the stock market movements within each segment? 
+    \item Is there any pattern on sparsity of forces when comparing chaotic (pink) and normal (blue) segments of the stock market?
+    \item Can we provide a coherent picture of mechanisms underlying the sudden volatility changes in stock markets in the past 32 years, by further considering the relatively homogeneous segments of the market?
+\end{enumerate}
+
+\newpage
+\section{Model Specification}
+We will use four different regression models: OLS (Ordinary Least Squares) Regression, LASSO (Least Absolute Shrinkage and Selection Operator) Regression, Ridge Regression and Elastic Net Regression to predict future VIX trends in the stock market. We will provide a detail summary of each regression model and compare each model in terms of their performance.
+
+\subsection{OLS Regression}
+The first regression model we will use is OLS regression. This model is used to estimate the unknown coefficients in a linear regression model by minimizing the sum of squared errors, which is known as the objective function and can be expressed as $$min \sum_{i=1}^n(Y_i–\hat{Y})^2.$$ The resulting regression model can thus be expressed using the following formula: $$Y_i=\beta_0+\beta_1x_1+\ldots+\beta_nx_n+\varepsilon$$ where
+\begin{itemize}
+\item $Y_i$ is the response variable
+\item $\beta_0$ is the intercept 
+\item $\beta_1,\ldots, \beta_n$ are the coefficients
+\item $x_1, \ldots, x_n$ are the explanatory variables
+\item $\varepsilon$ is the random error term.
+\end{itemize}
+
+There are several assumptions that must be met for OLS regression to be correct. These assumptions include linearity, independence of errors, normality, and equal variance. Although OLS is a simple and efficient regression model when all assumptions are met, there are some disadvantages that force us to consider more effective regression models. OLS regression can be sensitive to outliers, which may affect the results of the analysis. It is also prone to overfitting when there are many explanatory variables in the data set, which can lead to problems when the model is given new data. Most importantly, the presence of multicollinearity, which is when two or more explanatory variables are highly correlated, can have a negative effect on the model. Thus, we can consider LASSO, Ridge, and Elastic Net regression, which all include regularization techniques to address this issue.
+
+\subsection{Ridge Regression}
+The second regression model we will use is Ridge regression. This model is particularly effective when multicollinearity plays a factor in the given data. Ridge regression assigns a penalty term, known as the L2 penalty, to the original OLS objective function. The L2 penalty adds the sum of squared magnitude of the coefficients multiplied by lambda, which is a term that essentially determines how much weight is assigned to the penalty term. As lambda increases, the coefficients get closer to zero. Thus, this model has the effect of shrinking coefficients towards zero, without setting them exactly to zero.
+
+\subsection{LASSO Regression}
+The third regression model we will use is LASSO regression. Similar to Ridge regression, this model is also particularly effective when multicollinearity plays a factor in the given data. LASSO regression also assigns a penalty term, known as the L1 penalty, to the original OLS objective function. The L1 penalty adds the sum of the absolute value of the coefficients multiplied by lambda. Thus, this model has the effect of shrinking coefficients by setting them exactly to zero, which leads to automatic variable selection.
+
+\subsection{Elastic Net Regression}
+The fourth and final regression model we will use is Elastic Net regression. This regression model adds both the L1 and L2 penalty term to the original OLS objective function. Elastic Net regression thus shrinks some coefficients close to zero, while setting some exactly to zero. It also introduces a new parameter, alpha, to the equation, which determines the weight of the L1 and L2 penalty terms. When $\alpha=0$, we are left with Ridge regression and when $\alpha=1$, we are left with LASSO regression.
+
+\section{Training and Diagnostics}
+
+\subsection{Phase I}
+\begin{figure}[htp]
+    \centering
+    \includegraphics[width=12cm]{table.png}
+\end{figure}
+For Phase 1 of our problem, we constructed four different regression models (OLS, Ridge, LASSO, and Elastic Net) to predict future VIX trends. We will be using four different metrics to analyze each regression model. These metrics will be the coefficient of determination ($R^2$), mean squared error (MSE), root mean squared error (RMSE), and variance inflation factor (VIF).
+
+\subsubsection{Coefficient of Determination}
+The first metric we will use is the coefficient of determination, which describes the proportion of the variance in the response variable that is explained by the explanatory variables in the regression model. It is used to identify the goodness of fit, that is, how well the data fits the regression model. The value of $R^2$ ranges from 0 to 1, with 0 indicating no fit and 1 indicating a perfect fit. 
+
+\subsubsection{Mean Squared Error}
+The second metric we will use is the mean squared error, which measures the average of the squared difference between the predicted values and actual values in the data set. The lower the MSE is, the better the model fits the data set. 
+
+\subsubsection{Root Mean Squared Error}
+The third metric we will use is the root mean squared error, which is the square root of the MSE. Similar to MSE, lower RMSE values indicate a better fit. 
+
+\subsubsection{Variance Inflation Factor}
+The last metric we will use is the variance inflation factor, which measures the amount of multicollinearity present between two or more explanatory variables in the model. A VIF value of 1 indicates no multicollinearity, while a VIF value of 4 or greater generally requires further investigation. A VIF value greater than 10 indicates high levels of multicollinearity.
+
+\subsubsection{Analysis}
+The following table summarizes these four metrics that we will use to compare and contrast each model in order to select a final model for forecasting:
+\begin{figure}[htp]
+    \centering
+    \includegraphics[width=12cm]{table.png}
+\end{figure}
+
+Examining the value in the above table, it is clear at first glance that the metrics are very close in value across all four models, indicating that all of our models are very competitive. Although OLS regression produces the highest $R^2$ value and lowest RMSE value by a marginal difference, it has the highest VIF value, which indicates that some multicollinearity may be present. Thus, it is useful to consider using a regularization technique in order to deal with this issue. Of the three regularization techniques, LASSO has the highest $R^2$ value, followed very closely by Elastic Net and Ridge regression. In terms of MSE, Elastic Net produces the lowest value, followed closely by LASSO and Ridge regression. In terms of RMSE, LASSO produces the lowest value, followed closely once again by Elastic Net and Ridge regression. Ridge regression shows to have the lowest VIF value, followed by Elastic Net and LASSO regression. Using k-fold cross-validation, we find that the optimal values of alpha and lambda for Elastic Net are 0.9909091 and 0.1611272, respectively (see Appendix).\\
+
+We can conduct further analysis by examining the above plots constructed for Ridge regression and LASSO regression below. 
+
+\begin{figure}[htp]
+    \centering
+    \includegraphics[width=5cm]{ridgecv.png}
+    \caption{Ridge regression cross-validation curve}
+\end{figure}
+
+\begin{figure}[htp]
+    \centering
+    \includegraphics[width=5cm]{ridge.png}
+    \caption{Ridge regression coefficient path plot}
+\end{figure}
+
+\begin{figure}[htp]
+    \centering
+    \includegraphics[width=5cm]{lassocv.png}
+    \caption{LASSO regression cross-validation curve}
+\end{figure}
+
+\begin{figure}[htp]
+    \centering
+    \includegraphics[width=5cm]{lasso.png}
+    \caption{LASSO regression coefficient path plot}
+\end{figure}
+
+\newpage
+In Figure 1 and Figure 3, we have the cross-validation curves for Ridge and LASSO regression, respectively. These graphs plot the MSE against $log(\lambda)$, which is represented by the solid red line. The upper and lower grey bars surrounding the MSE represent $\textrm{MSE} + 1se$ and $\textrm{MSE} -  1se$, respectively. The vertical dotted lines represent $\lambda_{min}$ and $\lambda_{1se}$. $\lambda_{min}$ represents the minimum MSE of the cross-validation, while $\lambda_{1se}$ is formed by adding one standard error to $\lambda_{min}$, which results in a more regularized model. Analyzing these two plots, we can see that the values of $\lambda_{min}$ and $\lambda_{1se}$ are higher for LASSO regression, indicating that this is a more regularized model, which prevents both overfitting and multicollinearity.\\
+
+In Figure 2 and Figure 4, we have the coefficient path plots for Ridge and LASSO regression, respectively. These graphs plot the value of the coefficients against $log(\lambda)$. Each curve corresponds to one of the predictors in the given data set. In both figures, we observe that as $log(\lambda)$ increases, the coefficients approach zero. The values on the top axis represent the number of non-zero coefficients at the current log lambda value. For Ridge regression, we observe that this value is always 45, since this regularization method shrinks the coefficients very close to zero, but never makes them equal to zero. For LASSO regression, we observe that these values decrease as $log(\lambda)$ increases. At $\lambda_{min}$, we have 25 non-zero coefficients and at $\lambda_{1se}$ we have only 2 non-zero coefficients. As a result, this form of regularization has led to a more sparse model, improving the performance of the original model. 
+
+Some questions that we asked ourselves at the beginning of this report were:
+\begin{enumerate}
+    \item Can we provide a coherent picture of mechanisms underlying the sudden volatility changes in stock markets in the past 32 years?
+    \item Is it even possible to forecast the stock market fear index? What are the reasons in favour of and against such possibility. 
+    \item Are the past data available to you sufficient for constructing a predictive model to forecast the direction of the stock market movements in the future?
+\end{enumerate}
+Providing a coherent picture of mechanisms underlying the sudden volatility changes in stock markets in the past 32 years is a very challenging task, as the stock market changes daily due to events that are beyond our control. We can build a solid model to predict future VIX trends, but, global and economic events can cause sudden changes to the market that even a perfect model cannot predict. Thus, it is not possible to truly forecast the fear index. We may be able to use historical events and patterns to give insight into future trends; however, unpredictable events and the complexity of the market make it difficult to forecast the stock market. Additionally, past data can offer good predictions of future trends if the data is reliable and the model is a good fit for the data.
+
+\section{Phase II}
+
+For Phase 2 of our problem, we used Elastic Net regression to analyze the stock market trends for six different time segments. Since we divided our large data set into six smaller data sets, we used leave one out cross-validation (LOOCV), which is a more effective tool on smaller data sets in comparison to k-fold cross-validation. Moreover, we scaled our predictor variables in order to obtain accurate values for the coefficients. The total time from January 1990 to December 2022 was divided into the following segments:
+\begin{figure}[htp]
+    \centering
+    \includegraphics[width=12cm]{time.png}
+\end{figure}
+
+The following table summarizes the top four forces responsible for driving the stock market movements within each segment:
+
+\begin{figure}[htp]
+    \centering
+    \includegraphics[width=10cm]{phase2table.png}
+\end{figure}
+
+One important question relating to Phase II is: Can we characterize the nature of the most dominant forces responsible for driving the stock market movements within each time segment? In order to carry out this analysis, we must understand the long and short-term trends responsible for driving the stock market as well as key global, social, economic, and political events that shape the movement of the market during these time periods. Reflecting on the six different time segments, we can immediately see that segment 4 corresponds to the Great Recession of 2008-2009. During this time period, the rate of unemployment went up to 25\%, GDP (gross domestic product) declined more than 10\%, and the price of houses fell significantly.1 As a result of these factors, we see that the main EMV trackers driving the stock market are Labour Markets; Government Spending, Deficits, and Debt; and Financial Crisis, which in turn cause the VIX index to increase. In the previous segment (segment 3), Fiscal Policy and Other Financial Indicators are high driving factors, which we can hypothesize is due to the upcoming recession in segment 4. In segment 5, as a result of the Great Recession, Real Estate Markets and Financial Regulation are the top two EMV trackers. We can hypothesize that since house prices decreases in the previous segment, many people began to invest in real estate, which in turn caused this EMV tracker to significantly affect the stock market. Likewise, we can see that segment 6 corresponds to the Covid-19 pandemic. During this time period, there was a global outbreak of coronavirus which resulted in school closures, business closures, unemployment, and the disruption of supply chains.2 Due to these factors, we can see that the main EMV trackers responsible for driving the stock market during this time are Food and Drug Policy, Labor Regulations, and Infectious Disease, which makes sense considering the effect that this pandemic had on healthcare and the economy.\\
+
+\begin{figure}[htp]
+    \centering
+    \includegraphics[width=8cm]{figure.png}
+    \caption{Volatility Changes in the Stock Market for Six Time Segments}
+\end{figure}
+
+Another key question that arises is: Is there any pattern on sparsity of forces when comparing chaotic (pink) and normal (blue) segments of the stock market in Figure 5 above? Our analysis shows that chaotic segments are tied to periods of high volatility. During these periods, sparsity may decrease as more factors arise, affecting the overall volatility in the stock market. In contrast, the normal segments are tied to periods of low volatility. As a result, sparsity increases since there are less factors affecting the volatility. It is also important to note that the chaotic segments are much shorter than the normal segments, as high volatility in the chaotic segments are usually triggered by short-term events, such as economic crises or global events.\\
+
+The final question that we will answer is: Can we provide a coherent picture of mechanisms underlying the sudden volatility changes in stock markets in the past 32 years, by further considering the relatively homogeneous segments of the market? By considering the homogeneous segments of the market and analyzing each segment individually, we can form a clearer picture of the underlying forces driving the stock market when certain economic, global, or social events occur.  Through this analysis, we are thus able to come to a conclusion on what factors affect the stock market during periods of low volatility versus periods of high volatility.
+
+\section{Discussion and Limitations}
+There are a few limitations that exist in our analysis of the VIX trends in the stock market. One limitation is that the data set we worked with was highly-dimensional, which means that we had a high number of covariates and a small number of observations relative to the covariate size. In our case, we had 45 explanatory variables and 390 observations. This can be problematic, as it can lead to sparsity in the data and complexity in the model. This can then cause overfitting and multicollinearity, which are major issues. Another limitation is the ever-changing nature of the stock market. Even if we find a regression model that fits our data very well and can predict future VIX values, there is always a possibility for an unforseen event to occur, which can impact the stock market in ways that we cannot predict.\\
+
+In summary, although LASSO and Ridge regression prove to be very competitive regularization methods for our model, the analysis conducted in the Training and Diagnostics section shows that LASSO regression may provide a slightly better fit in terms of overall performance. However, we can take this one step further and conclude that Elastic Net should be used as the final model, since it provides an overall balance of benefits between Ridge and LASSO regression. Additionally, further analytic methods that are beyond the scope of this course can be conducted in order to conclude with great certainty which model provides the best fit.\\
+
+Furthemore, upon dividing the stock market trends into six different segments, we found that the specific forces driving the VIX values in the stock market were dependent upon short-term and long-term economic, global, political and social events. As a result, it is extremely difficult to make accurate predictions about the VIX trends. There will always be a level of uncertainty due to unforseeable events.
+
+\section{Bibliography}
+$^1$ James, Gareth, Daniela Witten, Trevor Hastie, and Robert Tibshirani. 2013. An Introduction to Statistical Learning. PDF. 1st ed. Springer Texts in Statistics. New York, NY: Springer.\\
+
+\noindent $^2$ Chugh, Akshita. “MAE, MSE, RMSE, Coefficient of Determination, Adjusted R Squared — Which Metric Is Better?” Medium, n.d. https://medium.com/\ analytics-vidhya/mae-mse-rmse-coefficient-of-determination-adjusted-r-squared-which-metric-is-better-cd0326a5697e.\\
+
+\noindent $^3$ Hastie, Trevor, Junyang Qian, and Kenneth Tay. “An Introduction to Glmnet.” cran.r-project, August 19, 2023. Accessed November 10, 2023.\ https://cran.r-project.org/web/packages/glmnet/vignettes/glmnet.pdf.\\
+
+\noindent $^4$ “Coronavirus Disease (COVID-19) Pandemic,” November 10, 2023.\\ https://www.who.int/europe/emergencies/situations/covid-19.\\
+
+\noindent $^5$ Team, Investopedia. “2008 Recession: What It Was and What Caused It.” Investopedia, April 30, 2023. \\ https://www.investopedia.com/terms/g/great-recession.asp.
+
+\section{Appendix}
+See attached document.
+
+\end{document}
