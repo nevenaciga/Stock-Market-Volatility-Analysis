@@ -1,0 +1,326 @@
+---
+title: "Stock Market Volatility Analysis"
+author: "Nevena Ciganovic"
+date: "November 12, 2023"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    theme: readable
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+packages <- c("tidyverse", "ggplot2", "readxl", "e1071", "caret", "glmnet", "ISLR")
+missing_packages <- packages[!packages %in% rownames(installed.packages())]
+if (length(missing_packages) > 0) {
+  install.packages(missing_packages)
+}
+lapply(packages, library, character.only = TRUE)
+options(warn = -1)
+```
+
+## Load Data
+
+Make sure `EMV_VIX_Data.xlsx` is in the same folder as this `.Rmd` file before knitting.
+
+```{r load-data}
+df <- read_excel("EMV_VIX_Data.xlsx")
+data <- read_excel("EMV_VIX_Data.xlsx")
+
+y <- data$VIX
+data <- data[, !(names(data) %in% c("VIX", "Date"))]
+x <- model.matrix(y ~ ., data)[, -1]
+```
+
+## OLS Regression
+
+```{r ols-regression}
+ols <- lm(y ~ x)
+summary(ols)
+```
+
+```{r ols-metrics}
+predicted_values <- predict(ols)
+MSE <- mean((y - predicted_values)^2)
+MSE
+
+RMSE(predicted_values, y)
+
+vif <- 1 / (1 - 0.6214)
+vif
+```
+
+## Ridge Regression
+
+```{r reload-data-ridge}
+data <- read_excel("EMV_VIX_Data.xlsx")
+y <- data$VIX
+data <- data[, !(names(data) %in% c("VIX", "Date"))]
+x <- model.matrix(y ~ ., data)[, -1]
+```
+
+```{r ridge-cv}
+set.seed(1)
+ridge.cv <- cv.glmnet(
+  x, y,
+  type.measure = "mse",
+  alpha = 0,
+  family = "gaussian",
+  nlambda = 200,
+  nfolds = 10
+)
+
+ridge.cv$lambda.min
+ridge.cv$lambda.1se
+
+plot(ridge.cv)
+abline(h = ridge.cv$cvup[ridge.cv$index[1]], lty = 4)
+```
+
+```{r ridge-path}
+ridge <- glmnet(x, y, alpha = 0)
+plot(ridge, xvar = "lambda")
+abline(v = log(ridge.cv$lambda.min), lty = 3)
+abline(v = log(ridge.cv$lambda.1se), lty = 3)
+```
+
+### Ridge Metrics
+
+```{r ridge-metrics}
+ridge <- glmnet(x, y, alpha = 0)
+predicted_values <- predict(ridge, newx = x, s = ridge.cv$lambda.min)
+
+MSE <- mean((y - predicted_values)^2)
+MSE
+
+SSE <- sum((y - predicted_values)^2)
+SST <- sum((y - mean(y))^2)
+R_squared <- 1 - (SSE / SST)
+R_squared
+
+RMSE_value <- RMSE(predicted_values, y)
+RMSE_value
+
+VIF <- 1 / (1 - R_squared)
+VIF
+```
+
+```{r ridge-coefficients}
+coef(ridge, ridge.cv$lambda.min)
+```
+
+## Lasso Regression
+
+```{r lasso-cv}
+set.seed(1)
+lasso.cv <- cv.glmnet(
+  x, y,
+  type.measure = "mse",
+  alpha = 1,
+  family = "gaussian",
+  nlambda = 200,
+  nfolds = 10
+)
+
+lasso.cv$lambda.min
+lasso.cv$lambda.1se
+
+plot(lasso.cv)
+abline(h = lasso.cv$cvup[lasso.cv$index[1]], lty = 4)
+```
+
+```{r lasso-path}
+lasso <- glmnet(x, y, alpha = 1)
+plot(lasso, xvar = "lambda")
+abline(v = log(lasso.cv$lambda.min), lty = 3)
+abline(v = log(lasso.cv$lambda.1se), lty = 3)
+```
+
+### Lasso Metrics
+
+```{r lasso-metrics}
+lasso <- glmnet(x, y, alpha = 1)
+predicted_values <- predict(lasso, newx = x, s = lasso.cv$lambda.min)
+
+MSE <- mean((y - predicted_values)^2)
+MSE
+
+SSE <- sum((y - predicted_values)^2)
+SST <- sum((y - mean(y))^2)
+R_squared <- 1 - (SSE / SST)
+R_squared
+
+RMSE_value <- RMSE(predicted_values, y)
+RMSE_value
+
+VIF <- 1 / (1 - R_squared)
+VIF
+```
+
+```{r lasso-coefficients}
+coef(lasso, lasso.cv$lambda.min)
+```
+
+## Elastic Net Regression
+
+```{r elastic-net-cv-10}
+k <- 10
+set.seed(1)
+train_control <- trainControl(method = "cv", number = k)
+
+elastic_model <- train(
+  y ~ .,
+  data = cbind(x, y),
+  method = "glmnet",
+  preProcess = c("center", "scale"),
+  tuneLength = 10,
+  trControl = train_control
+)
+
+print(elastic_model)
+```
+
+```{r elastic-net-rmse}
+predictions_enet <- glmnet(
+  x, y,
+  alpha = elastic_model$finalModel$tuneValue$alpha,
+  lambda = elastic_model$finalModel$tuneValue$lambda
+) %>%
+  predict(x) %>%
+  as.vector()
+
+RMSE_enet <- RMSE(predictions_enet, y)
+RMSE_enet
+```
+
+```{r elastic-net-cv-100}
+k <- 10
+set.seed(1)
+train_control <- trainControl(method = "cv", number = k)
+
+elastic_model <- train(
+  y ~ .,
+  data = cbind(x, y),
+  method = "glmnet",
+  preProcess = c("center", "scale"),
+  tuneLength = 100,
+  trControl = train_control
+)
+
+print(elastic_model$finalModel$tuneValue)
+```
+
+```{r elastic-net-metrics}
+predictions_enet <- glmnet(
+  x, y,
+  alpha = elastic_model$finalModel$tuneValue$alpha,
+  lambda = elastic_model$finalModel$tuneValue$lambda
+) %>%
+  predict(x) %>%
+  as.vector()
+
+MSE <- mean((y - predictions_enet)^2)
+MSE
+
+RMSE_enet <- RMSE(predictions_enet, y)
+RMSE_enet
+
+SSE <- sum((y - predictions_enet)^2)
+SST <- sum((y - mean(y))^2)
+r_sq <- 1 - (SSE / SST)
+r_sq
+
+vif <- 1 / (1 - r_sq)
+vif
+```
+
+## Phase 2
+
+The following chunks fit elastic net models to separate row segments of the data.
+
+```{r segment-function}
+fit_segment <- function(row_index, k) {
+  all_data <- read_excel("EMV_VIX_Data.xlsx")
+  selected_data_full <- all_data[row_index, ]
+  y_set <- selected_data_full$VIX
+  predictor_data <- all_data[, !(names(all_data) %in% c("VIX", "Date"))]
+  selected_data <- predictor_data[row_index, ]
+  x_matrix <- scale(model.matrix(y_set ~ ., selected_data)[, -1])
+  
+  set.seed(1)
+  train_control <- trainControl(method = "loocv", number = k)
+  elastic_model <- train(
+    y_set ~ .,
+    data = cbind(x_matrix, y_set),
+    method = "glmnet",
+    preProcess = c("center", "scale"),
+    tuneLength = 10,
+    trControl = train_control
+  )
+  
+  enet <- glmnet(
+    x_matrix, y_set,
+    alpha = elastic_model$finalModel$tuneValue$alpha
+  )
+  
+  predicted_values <- predict(
+    enet,
+    newx = x_matrix,
+    s = elastic_model$finalModel$tuneValue$lambda
+  )
+  
+  list(
+    coefficients = coef(enet, elastic_model$finalModel$tuneValue$lambda),
+    tune_value = elastic_model$finalModel$tuneValue,
+    predictions = predicted_values
+  )
+}
+```
+
+### Segment 1
+
+```{r segment-1}
+segment_1 <- fit_segment(1:102, k = 102)
+segment_1$coefficients
+segment_1$tune_value
+```
+
+### Segment 2
+
+```{r segment-2}
+segment_2 <- fit_segment(104:159, k = 55)
+segment_2$coefficients
+segment_2$tune_value
+```
+
+### Segment 3
+
+```{r segment-3}
+segment_3 <- fit_segment(161:216, k = 55)
+segment_3$coefficients
+segment_3$tune_value
+```
+
+### Segment 4
+
+```{r segment-4}
+segment_4 <- fit_segment(218:237, k = 19)
+segment_4$coefficients
+segment_4$tune_value
+```
+
+### Segment 5
+
+```{r segment-5}
+segment_5 <- fit_segment(239:360, k = 21)
+segment_5$coefficients
+segment_5$tune_value
+```
+
+### Segment 6
+
+```{r segment-6}
+segment_6 <- fit_segment(350:395, k = 45)
+segment_6$coefficients
+segment_6$tune_value
+```
